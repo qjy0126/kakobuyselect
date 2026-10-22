@@ -65,7 +65,7 @@
     const pageHero = document.querySelector(".page-hero h1");
     const pageLede = document.querySelector(".page-hero p");
     if (qParam && pageHero) {
-      pageHero.textContent = 'Results for “‘ + qParam + '”';
+      pageHero.textContent = 'Results for "' + qParam + '"';
       if (pageLede) {
         pageLede.textContent = "Products matching this popular search — open any card for details or Buy →.";
       }
