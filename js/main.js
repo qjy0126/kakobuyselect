@@ -102,7 +102,7 @@
         if (!btn) return;
         activeCat = btn.getAttribute("data-cat");
         $$("button", filterBar).forEach((b) => b.classList.toggle("is-active", b === btn));
-        renderFinds();
+        renderFinds(true);
         const url = new URL(location.href);
         if (activeCat === "all") url.searchParams.delete("cat");
         else url.searchParams.set("cat", activeCat);
@@ -110,7 +110,11 @@
       });
     }
 
-    function renderFinds() {
+    const PAGE_SIZE = 96;
+    let visibleCount = PAGE_SIZE;
+    let filtered = [];
+
+    function currentList() {
       let list = products.slice();
       if (activeCat && activeCat !== "all") {
         // Search "Pants/Shorts" uses bottoms → pants + shorts
@@ -123,12 +127,44 @@
       if (qParam) {
         list = list.filter((p) => productMatches(p, qParam));
       }
-      findsGrid.innerHTML = list.length
-        ? list.map((p) => window.productCardHtml(p, detailHref(p.id))).join("")
-        : '<p class="search-empty">No finds match this search.</p>';
+      return list;
     }
 
-    renderFinds();
+    function renderFinds(reset) {
+      if (reset) visibleCount = PAGE_SIZE;
+      filtered = currentList();
+      const shown = filtered.slice(0, visibleCount);
+      let html = shown.length
+        ? shown.map((p) => window.productCardHtml(p, detailHref(p.id))).join("")
+        : '<p class="search-empty">No finds match this search.</p>';
+      if (filtered.length > shown.length) {
+        html +=
+          '<div class="finds-more" style="grid-column:1/-1;text-align:center;padding:28px 0 8px">' +
+          '<p style="margin:0 0 12px;color:var(--muted,#667)">' +
+          "Showing " +
+          shown.length +
+          " of " +
+          filtered.length +
+          "</p>" +
+          '<button type="button" class="btn btn-solid" id="finds-load-more">Load more</button>' +
+          "</div>";
+      } else if (filtered.length > 0) {
+        html +=
+          '<p class="finds-more" style="grid-column:1/-1;text-align:center;padding:20px 0;color:var(--muted,#667)">' +
+          filtered.length +
+          " finds</p>";
+      }
+      findsGrid.innerHTML = html;
+      const moreBtn = $("#finds-load-more");
+      if (moreBtn) {
+        moreBtn.addEventListener("click", () => {
+          visibleCount += PAGE_SIZE;
+          renderFinds(false);
+        });
+      }
+    }
+
+    renderFinds(true);
   }
 
   /* Favorites toggle */
